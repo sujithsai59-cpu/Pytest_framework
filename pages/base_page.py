@@ -6,6 +6,8 @@ interactions so individual page objects stay thin and readable, and so
 timeout/wait behavior is defined in exactly one place.
 """
 
+import time
+
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException
@@ -13,6 +15,7 @@ from selenium.common.exceptions import TimeoutException
 
 class BasePage:
     DEFAULT_TIMEOUT = 10
+    TYPE_DELAY = 0.05  # seconds between keystrokes
 
     def __init__(self, driver):
         self.driver = driver
@@ -33,11 +36,17 @@ class BasePage:
         element = self._wait(timeout).until(EC.element_to_be_clickable(locator))
         element.click()
 
-    def type_text(self, locator, text, timeout=None):
-        """Clear a field and type into it."""
+    def type_text(self, locator, text, timeout=None, max_attempts=3):
+        """
+        Clear a field and type into it.
+        """
         element = self.find(locator, timeout)
+        element.click()
         element.clear()
-        element.send_keys(text)
+        for char in text:
+            element = self.find(locator, timeout)
+            element.send_keys(char)
+            time.sleep(self.TYPE_DELAY)
 
     def get_text(self, locator, timeout=None):
         return self.find(locator, timeout).text

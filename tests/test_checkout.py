@@ -8,7 +8,7 @@ components in isolation.
 """
 
 import pytest
-
+import time
 from pages.login_page import LoginPage
 from pages.inventory_page import InventoryPage
 from pages.cart_page import CartPage, CheckoutInfoPage, CheckoutOverviewPage, CheckoutCompletePage
@@ -34,9 +34,13 @@ def test_end_to_end_checkout_completes_successfully(driver):
 
     # 3. Fill in shipping info
     info_page = CheckoutInfoPage(driver)
-    info_page.fill_info("Jane", "Doe", "500001")
+    info_page.enter_first_name("Jane")
+    time.sleep(0.5)
+    info_page.enter_last_name("Doe")
+    time.sleep(0.5)
+    info_page.enter_zip_code("500001")
+    time.sleep(0.5)
     info_page.continue_to_overview()
-
     # 4. Confirm order overview total is present and finish
     overview_page = CheckoutOverviewPage(driver)
     assert overview_page.get_item_total() > 0
@@ -57,10 +61,15 @@ def test_checkout_requires_first_name(driver):
     inventory_page.add_item_to_cart_by_slug("sauce-labs-backpack")
     inventory_page.go_to_cart()
 
+    
     CartPage(driver).checkout()
 
     info_page = CheckoutInfoPage(driver)
-    info_page.fill_info("", "Doe", "500001")  # missing first name
+    info_page.enter_first_name("") 
+    time.sleep(0.5) 
+    info_page.enter_last_name("Doe")
+    time.sleep(0.5)
+    info_page.enter_zip_code("500001")
+    time.sleep(0.5)
     info_page.continue_to_overview()
-
     assert info_page.is_error_displayed()
